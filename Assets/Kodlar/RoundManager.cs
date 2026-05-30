@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using TMPro;
-using UnityEngine.UI; // UI elementleri (Toggle vb.) için gerekli
+using UnityEngine.UI; 
 
 public class RoundManager : MonoBehaviour
 {
@@ -10,7 +10,7 @@ public class RoundManager : MonoBehaviour
 
     [Header("Oyun Modu Ayarları")]
     public bool isSoloMode;
-    public bool isRandomModeOn; // Random modun açık/kapalı durumunu tutar
+    public bool isRandomModeOn; 
 
     [Header("UI ve Kamera Ayarları")]
     public GameObject menuPanel;
@@ -37,7 +37,7 @@ public class RoundManager : MonoBehaviour
     public GridManager player2Grid;
     public int p1Wins;
     public int p2Wins;
-    public int winTarget = 3; // Sadece Duo modda geçerli olacak
+    public int winTarget = 3; 
 
     [Header("Örnek Şekil Gösterim Ayarları")]
     public GameObject previewCubePrefab; 
@@ -45,26 +45,26 @@ public class RoundManager : MonoBehaviour
     public Transform player2Base; 
     
     private List<GameObject> _spawnedPreviewCubes = new List<GameObject>(); 
-    private List<List<Vector3>> _allShapesPool = new List<List<Vector3>>();
     
-    public List<Vector3> targetShape = new List<Vector3>();
+    [Header("3D Şekil Kütüphanesi")]
+    public SekilVerisi3D[] seviyeSekilleri; 
+    
+    [HideInInspector] public List<Vector3> targetShape = new List<Vector3>();
 
     void Start()
     {
-        InitializeShapePool();
-        ReturnToMainMenu(); // Oyun başlarken direkt menü kurulumunu yapsın
+        // Resources/HazirSekiller klasöründeki tüm .asset dosyalarını otomatik yükler
+        seviyeSekilleri = Resources.LoadAll<SekilVerisi3D>("HazirSekiller");
+        Debug.Log($"Sistem klasörden {seviyeSekilleri.Length} adet şekli başarıyla otomatik yükledi!");
+
+        ReturnToMainMenu(); 
     }
 
-    // --- MENÜ VE ÇIKIŞ FONKSİYONLARI ---
-
-    // Oyunu tamamen kapatır (Sadece Build alındığında (EXE/APK) çalışır, editörde görünmez)
     public void QuitGame()
     {
-        Debug.Log("Oyundan Çıkılıyor...");
         Application.Quit();
     }
 
-    // Oyun içinden Ana Menüye dönerken her şeyi sıfırlar
     public void ReturnToMainMenu()
     {
         currentState = GameState.MainMenu;
@@ -76,25 +76,17 @@ public class RoundManager : MonoBehaviour
         ClearPlayerGrid(player2Grid);
 
         if (player1Controller != null) player1Controller.SetActive(true);
-    
-        // Menüdeyken P1 kamerasını tam ekran yapıyoruz
         if (camP1 != null) camP1.rect = new Rect(0, 0, 1, 1); 
-
-        // Sadece P2'yi kapatıyoruz
         if (player2Controller != null) player2Controller.SetActive(false);
 
         if (menuPanel != null) menuPanel.SetActive(true);
         if (gamePanel != null) gamePanel.SetActive(false);
     }
 
-    // Random Modu UI'dan (Toggle/Checkbox) açıp kapatmak için
     public void SetRandomMode(bool isOn)
     {
         isRandomModeOn = isOn;
-        Debug.Log("Random Mod: " + (isOn ? "AÇIK" : "KAPALI"));
     }
-
-    // --- MOD SEÇİMLERİ ---
 
     public void SelectSoloMode()
     {
@@ -137,44 +129,28 @@ public class RoundManager : MonoBehaviour
         StartNewRound();
     }
 
-    void InitializeShapePool()
-    {
-        List<Vector3> koltuk = new List<Vector3> {
-            new Vector3(0,0,0), new Vector3(1,0,0), new Vector3(2,0,0),
-            new Vector3(0,0,1), new Vector3(1,0,1), new Vector3(2,0,1),
-            new Vector3(0,1,0), new Vector3(1,1,0), new Vector3(2,1,0)
-        };
-        _allShapesPool.Add(koltuk);
-
-        List<Vector3> piramit = new List<Vector3> {
-            new Vector3(0,0,0), new Vector3(1,0,0),
-            new Vector3(0,0,1), new Vector3(1,0,1),
-            new Vector3(0,1,0)
-        };
-        _allShapesPool.Add(piramit);
-
-        List<Vector3> kare = new List<Vector3> {
-            new Vector3(0,0,0), new Vector3(1,0,0), new Vector3(2,0,0),
-            new Vector3(0,0,1),                     new Vector3(2,0,1),
-            new Vector3(0,0,2), new Vector3(1,0,2), new Vector3(2,0,2)
-        };
-        _allShapesPool.Add(kare);
-    }
-
     public void StartNewRound()
     {
         ClearPlayerGrid(player1Grid);
         if (!isSoloMode) ClearPlayerGrid(player2Grid); 
 
-        // RASTGELE MOD AÇIKSA PROCEDURAL ÜRET, KAPALIYSA HAVUZDAN SEÇ
         if (isRandomModeOn)
         {
             targetShape = GenerateProceduralShape();
         }
         else
         {
-            int randomIndex = Random.Range(0, _allShapesPool.Count);
-            targetShape = _allShapesPool[randomIndex];
+            if (seviyeSekilleri != null && seviyeSekilleri.Length > 0)
+            {
+                int randomIndex = Random.Range(0, seviyeSekilleri.Length);
+                SekilVerisi3D secilen3DSekil = seviyeSekilleri[randomIndex];
+                
+                targetShape = Yukle3DSekilKoordinatlari(secilen3DSekil);
+            }
+            else
+            {
+                targetShape = GenerateProceduralShape(); 
+            }
         }
 
         SpawnPreviewShape(player1Base);
@@ -184,11 +160,30 @@ public class RoundManager : MonoBehaviour
         _timer = observeTime;
     }
 
-    // YENİ: KENDİ KENDİNE YEPYENİ ŞEKİLLER ÜRETEN ALGORİTMA
+    List<Vector3> Yukle3DSekilKoordinatlari(SekilVerisi3D veri)
+    {
+        List<Vector3> koordinatlar = new List<Vector3>();
+        
+        for (int y = 0; y < veri.katmanlar.Count; y++)
+        {
+            for (int z = 0; z < 5; z++)
+            {
+                for (int x = 0; x < 5; x++)
+                {
+                    if (veri.BlokVarMi(x, y, z))
+                    {
+                        koordinatlar.Add(new Vector3(x, y, z));
+                    }
+                }
+            }
+        }
+        return koordinatlar;
+    }
+
     List<Vector3> GenerateProceduralShape()
     {
         List<Vector3> randomShape = new List<Vector3>();
-        int cubeCount = Random.Range(4, 9); // 4 ile 8 arası küpten oluşan şekil
+        int cubeCount = Random.Range(4, 9); 
         
         for (int i = 0; i < cubeCount; i++)
         {
@@ -196,10 +191,9 @@ public class RoundManager : MonoBehaviour
             int antiCrash = 0;
             do
             {
-                // 3x3x3 boyutlarında rastgele bir koordinat seç
-                randomPos = new Vector3(Random.Range(0, 3), Random.Range(0, 3), Random.Range(0, 3));
+                randomPos = new Vector3(Random.Range(0, 5), Random.Range(0, 4), Random.Range(0, 5));
                 antiCrash++;
-                if(antiCrash > 50) break; // Sonsuz döngü koruması
+                if(antiCrash > 50) break; 
                 
             } while (randomShape.Contains(randomPos)); 
             
@@ -241,15 +235,16 @@ public class RoundManager : MonoBehaviour
     {
         if (baseTransform == null || previewCubePrefab == null) return;
 
-        int baseX = Mathf.RoundToInt(baseTransform.position.x);
-        int baseY = Mathf.RoundToInt(baseTransform.position.y);
-        int baseZ = Mathf.RoundToInt(baseTransform.position.z);
+        float baseX = baseTransform.position.x;
+        float baseY = baseTransform.position.y;
+        float baseZ = baseTransform.position.z;
 
         foreach (Vector3 localPos in targetShape)
         {
-            float spawnX = baseX + localPos.x;
+            // Şekli 5x5 platformun tam merkezine oturtuyoruz
+            float spawnX = baseX + (localPos.x - 2f);
             float spawnY = baseY + localPos.y + 1f; 
-            float spawnZ = baseZ + localPos.z;
+            float spawnZ = baseZ + (localPos.z - 2f);
 
             Vector3 finalSpawnPos = new Vector3(spawnX, spawnY, spawnZ);
             GameObject cube = Instantiate(previewCubePrefab, finalSpawnPos, Quaternion.identity);
@@ -281,19 +276,20 @@ public class RoundManager : MonoBehaviour
 
     void CheckEarlyWin()
     {
-        bool p1Finished = IsShapePerfect(player1Grid.placedCubes);
+        // Platformları (Base) gönderiyoruz ki koordinatları doğru merkeze alsın
+        bool p1Finished = IsShapePerfect(player1Grid.placedCubes, player1Base);
         
         if (isSoloMode)
         {
             if (p1Finished) 
             { 
-                p1Wins += CalculateScore(player1Grid.placedCubes); // Solo modda kazanma sayısı değil, total puan tutulur
+                p1Wins += CalculateScore(player1Grid.placedCubes, player1Base); 
                 EndRound(true); 
             }
             return; 
         }
 
-        bool p2Finished = IsShapePerfect(player2Grid.placedCubes);
+        bool p2Finished = IsShapePerfect(player2Grid.placedCubes, player2Base);
 
         if (p1Finished)
         {
@@ -307,15 +303,27 @@ public class RoundManager : MonoBehaviour
         }
     }
 
-    bool IsShapePerfect(List<Vector3> playerCubes)
+    bool IsShapePerfect(List<Vector3> playerCubes, Transform playerBase)
     {
         if (playerCubes.Count != targetShape.Count) return false;
 
+        float baseX = playerBase.position.x;
+        float baseY = playerBase.position.y;
+        float baseZ = playerBase.position.z;
+
         foreach (Vector3 pos in playerCubes)
         {
-            if (!targetShape.Contains(pos)) return false;
+            // Gerçek dünya koordinatını şablon (0-4) koordinatına çeviriyoruz
+            int gridX = Mathf.RoundToInt(pos.x - baseX + 2f);
+            int gridY = Mathf.RoundToInt(pos.y - baseY - 1f); 
+            int gridZ = Mathf.RoundToInt(pos.z - baseZ + 2f);
+
+            Vector3 normalizedPos = new Vector3(gridX, gridY, gridZ);
+
+            if (!targetShape.Contains(normalizedPos)) return false;
         }
-        return true;
+        
+        return true; 
     }
 
     void EndRound(bool isEarlyWin = false)
@@ -324,16 +332,17 @@ public class RoundManager : MonoBehaviour
 
         if (!isEarlyWin)
         {
-            int p1Score = CalculateScore(player1Grid.placedCubes);
+            // Skoru hesaplarken de platformları (Base) fonksiyona iletiyoruz
+            int p1Score = CalculateScore(player1Grid.placedCubes, player1Base);
             
             if (isSoloMode)
             {
-                p1Wins += p1Score; // Toplam puana ekle
+                p1Wins += p1Score; 
                 UpdateUI($"TUR BİTTİ!\nBu Tur Puanın: {p1Score}\nToplam Puanın: {p1Wins}");
             }
             else
             {
-                int p2Score = CalculateScore(player2Grid.placedCubes);
+                int p2Score = CalculateScore(player2Grid.placedCubes, player2Base);
                 if (p1Score > p2Score) p1Wins++;
                 else if (p2Score > p1Score) p2Wins++;
                 UpdateUI($"TUR BİTTİ!\nP1 Puan: {p1Score} | P2 Puan: {p2Score}");
@@ -345,12 +354,10 @@ public class RoundManager : MonoBehaviour
             else UpdateUI("MÜKEMMEL EŞLEŞME!\nTur Kazanıldı!");
         }
 
-        // SOLO MOD İSE SONSUZ DÖNGÜ (winTarget kontrolü yapılmaz)
         if (isSoloMode)
         {
             Invoke(nameof(StartNewRound), 3f);
         }
-        // DUO MOD İSE 3 YAPAN KAZANIR (OYUN BİTER)
         else
         {
             if (p1Wins >= winTarget) 
@@ -368,13 +375,24 @@ public class RoundManager : MonoBehaviour
         }
     }
 
-    int CalculateScore(List<Vector3> playerCubes)
+    int CalculateScore(List<Vector3> playerCubes, Transform playerBase)
     {
         int score = 0;
+        
+        float baseX = playerBase.position.x;
+        float baseY = playerBase.position.y;
+        float baseZ = playerBase.position.z;
+
         foreach (Vector3 pos in playerCubes)
         {
-            if (targetShape.Contains(pos)) score += 10;
-            else score -= 5; // Yanlış yere koyulan her blok -5 puan
+            int gridX = Mathf.RoundToInt(pos.x - baseX + 2f);
+            int gridY = Mathf.RoundToInt(pos.y - baseY - 1f); 
+            int gridZ = Mathf.RoundToInt(pos.z - baseZ + 2f);
+            
+            Vector3 normalizedPos = new Vector3(gridX, gridY, gridZ);
+
+            if (targetShape.Contains(normalizedPos)) score += 10;
+            else score -= 5; 
         }
         return score;
     }

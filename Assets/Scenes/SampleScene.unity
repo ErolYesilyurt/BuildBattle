@@ -1743,6 +1743,7 @@ MonoBehaviour:
   previewCubePrefab: {fileID: 8664132402191149231, guid: 6691a2c5c58d64e49a4a3e87790910ae, type: 3}
   player1Base: {fileID: 996022285}
   player2Base: {fileID: 412239054}
+  seviyeSekilleri: []
   targetShape: []
 --- !u!1 &621846186
 GameObject:
@@ -2463,7 +2464,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
+  m_Sprite: {fileID: 0}
   m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
