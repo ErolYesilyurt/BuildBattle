@@ -61,6 +61,18 @@ public class PlayerBuild : MonoBehaviour
     }
 
     // --- BUTONLARIN TETİKLEYECEĞİ FONKSİYONLAR ---
+
+    public void ToggleMode()
+    {
+        if (currentMode == BuildMode.Add)
+            {
+            currentMode = BuildMode.Delete;
+            }
+        else if (currentMode == BuildMode.Delete)
+            {
+            currentMode = BuildMode.Add;
+            }
+    }
     public void SetAddMode()
     {
         currentMode = BuildMode.Add;
