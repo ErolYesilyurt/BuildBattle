@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 68cb85dc7425f454fa86f151cda49266, type: 3}
+  m_Name: Somine
+  m_EditorClassIdentifier: Assembly-CSharp::SekilVerisi3D
+  sekilAdi: "Tu\u011Fla \u015E\xF6mine"
+  katmanlar:
+  - katmanAdi: "Y\xFCkseklik Katman\u0131 0"
+    satirlar:
+    - sutunlar: ffffffffffffffffffffffffffffffffffffffff
+    - sutunlar: ffffffffffffffffffffffffffffffffffffffff
+    - sutunlar: ffffffff030000000300000003000000ffffffff
+    - sutunlar: ffffffff030000000300000003000000ffffffff
+    - sutunlar: ffffffff030000000300000003000000ffffffff
+  - katmanAdi: "Y\xFCkseklik Katman\u0131 1"
+    satirlar:
+    - sutunlar: ffffffffffffffffffffffffffffffffffffffff
+    - sutunlar: ffffffffffffffffffffffffffffffffffffffff
+    - sutunlar: ffffffffffffffffffffffffffffffffffffffff
+    - sutunlar: ffffffff03000000ffffffff03000000ffffffff
+    - sutunlar: ffffffff030000000300000003000000ffffffff
+  - katmanAdi: "Y\xFCkseklik Katman\u0131 2"
+    satirlar:
+    - sutunlar: ffffffffffffffffffffffffffffffffffffffff
+    - sutunlar: ffffffffffffffffffffffffffffffffffffffff
+    - sutunlar: ffffffffffffffffffffffffffffffffffffffff
+    - sutunlar: ffffffff030000000300000003000000ffffffff
+    - sutunlar: ffffffff030000000300000003000000ffffffff
+  - katmanAdi: "Y\xFCkseklik Katman\u0131 3"
+    satirlar:
+    - sutunlar: ffffffffffffffffffffffffffffffffffffffff
+    - sutunlar: ffffffffffffffffffffffffffffffffffffffff
+    - sutunlar: ffffffffffffffffffffffffffffffffffffffff
+    - sutunlar: ffffffffffffffffffffffffffffffffffffffff
+    - sutunlar: ffffffffffffffff03000000ffffffffffffffff

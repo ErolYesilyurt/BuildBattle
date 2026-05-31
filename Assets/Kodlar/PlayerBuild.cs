@@ -4,8 +4,9 @@ using UnityEngine.InputSystem;
 public class PlayerBuild : MonoBehaviour
 {
     public enum BuildMode { Add, Delete }
+    
     [Header("Aktif İnşa Modu")]
-    public BuildMode currentMode = BuildMode.Add; // Varsayılan olarak ekleme modu
+    public BuildMode currentMode = BuildMode.Add; 
 
     public GridManager gridManager;
     public OrbitCamera orbitCamera;
@@ -31,21 +32,21 @@ public class PlayerBuild : MonoBehaviour
                         {
                             if (currentMode == BuildMode.Add)
                             {
-                                // --- EKLEME MODU (Mevcut Mantık) ---
                                 Vector3 newCubePos = hit.point + (hit.normal * 0.1f);
                                 int x = Mathf.RoundToInt(newCubePos.x);
                                 int y = Mathf.RoundToInt(newCubePos.y);
                                 int z = Mathf.RoundToInt(newCubePos.z);
 
-                                gridManager.AddCube(new Vector3(x, y, z));
+                                // OYUNCUNUN SEÇTİĞİ BLOK İNDEKSİNİ AL (0, 1, 2 veya 3)
+                                int seciliIndeks = (playerID == 1) ? roundManager.p1SelectedBlockIndex : roundManager.p2SelectedBlockIndex;
+
+                                // Seçili indeksi GridManager'a gönder
+                                gridManager.AddCube(new Vector3(x, y, z), seciliIndeks);
                             }
                             else if (currentMode == BuildMode.Delete)
                             {
-                                // --- SILME MODU (Yeni Mantık) ---
-                                // Tıklanan objenin zemin (Base) değil, bir küp olduğundan emin olalım
                                 if (hit.collider.gameObject.CompareTag("Cube"))
                                 {
-                                    // Tıklanan küpün tam merkez koordinatını alıyoruz
                                     int x = Mathf.RoundToInt(hit.collider.gameObject.transform.position.x);
                                     int y = Mathf.RoundToInt(hit.collider.gameObject.transform.position.y);
                                     int z = Mathf.RoundToInt(hit.collider.gameObject.transform.position.z);
@@ -60,19 +61,12 @@ public class PlayerBuild : MonoBehaviour
         }
     }
 
-    // --- BUTONLARIN TETİKLEYECEĞİ FONKSİYONLAR ---
-
     public void ToggleMode()
     {
-        if (currentMode == BuildMode.Add)
-            {
-            currentMode = BuildMode.Delete;
-            }
-        else if (currentMode == BuildMode.Delete)
-            {
-            currentMode = BuildMode.Add;
-            }
+        if (currentMode == BuildMode.Add) currentMode = BuildMode.Delete;
+        else if (currentMode == BuildMode.Delete) currentMode = BuildMode.Add;
     }
+    
     public void SetAddMode()
     {
         currentMode = BuildMode.Add;
@@ -88,15 +82,11 @@ public class PlayerBuild : MonoBehaviour
     bool IsClickInMyScreenHalf(Vector2 clickPos)
     {
         if (roundManager != null && roundManager.isSoloMode && playerID == 1) 
-        {
             return true;
-        }
 
         float halfScreenWidth = Screen.width / 2f;
 
-        if (playerID == 1)
-            return clickPos.x < halfScreenWidth; 
-        else
-            return clickPos.x >= halfScreenWidth; 
+        if (playerID == 1) return clickPos.x < halfScreenWidth; 
+        else return clickPos.x >= halfScreenWidth; 
     }
 }

@@ -3,37 +3,40 @@ using System.Collections.Generic;
 
 public class GridManager : MonoBehaviour
 {
-    public GameObject cubePrefab;
+    [Header("Blok Çeşitleri")]
+    public GameObject[] blockPrefabs; // Plank, Oak, Cobblestone, Brick prefablarını buraya sürükle
 
-    public List<Vector3> placedCubes = new List<Vector3>();
+    // YENİ: Artık sadece pozisyon değil, hangi pozisyonda hangi bloğun (0,1,2,3) olduğunu tutuyoruz
+    public Dictionary<Vector3, int> placedBlocks = new Dictionary<Vector3, int>();
 
-    public void AddCube(Vector3 pos)
+    public void AddCube(Vector3 pos, int blockIndex)
     {
-
         Vector3 cleanPos = new Vector3(Mathf.RoundToInt(pos.x), Mathf.RoundToInt(pos.y), Mathf.RoundToInt(pos.z));
 
-  
-        if (!placedCubes.Contains(cleanPos))
+        // Eğer o noktada zaten bir blok yoksa
+        if (!placedBlocks.ContainsKey(cleanPos))
         {
-            placedCubes.Add(cleanPos);
-            Instantiate(cubePrefab, cleanPos, Quaternion.identity);
+            placedBlocks.Add(cleanPos, blockIndex); // Pozisyonu ve blok tipini kaydet
             
-            Debug.Log($"Küp Sayısı: {placedCubes.Count} | Konum: {cleanPos}");
+            GameObject yeniKup = Instantiate(blockPrefabs[blockIndex], cleanPos, Quaternion.identity);
+            yeniKup.tag = "Cube"; 
+            
+            Debug.Log($"Blok Eklendi. Tip: {blockIndex} | Konum: {cleanPos}");
         }
     }
     
     public void RemoveCube(Vector3 position)
     {
-        if (placedCubes.Contains(position))
-        {
-            placedCubes.Remove(position);
+        Vector3 cleanPos = new Vector3(Mathf.RoundToInt(position.x), Mathf.RoundToInt(position.y), Mathf.RoundToInt(position.z));
         
-            // O koordinatta duran fiziksel küpü sahnede bul ve yok et
+        if (placedBlocks.ContainsKey(cleanPos))
+        {
+            placedBlocks.Remove(cleanPos); // Listeden sil
+        
             GameObject[] cubes = GameObject.FindGameObjectsWithTag("Cube");
             foreach (GameObject cube in cubes)
             {
-                // Küpün pozisyonu ile silinmek istenen koordinat eşleşiyor mu?
-                if (Vector3.Distance(cube.transform.position, position) < 0.1f)
+                if (Vector3.Distance(cube.transform.position, cleanPos) < 0.1f)
                 {
                     Destroy(cube);
                     break;

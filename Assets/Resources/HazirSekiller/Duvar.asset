@@ -16,22 +16,22 @@ MonoBehaviour:
   katmanlar:
   - katmanAdi: "Y\xFCkseklik Katman\u0131 0"
     satirlar:
-    - sutunlar: 0101010101
-    - sutunlar: 0000000000
-    - sutunlar: 0000000000
-    - sutunlar: 0000000000
-    - sutunlar: 0000000000
+    - sutunlar: 0200000002000000020000000200000002000000
+    - sutunlar: ffffffffffffffffffffffffffffffffffffffff
+    - sutunlar: ffffffffffffffffffffffffffffffffffffffff
+    - sutunlar: ffffffffffffffffffffffffffffffffffffffff
+    - sutunlar: ffffffffffffffffffffffffffffffffffffffff
   - katmanAdi: "Y\xFCkseklik Katman\u0131 1"
     satirlar:
-    - sutunlar: 0101010101
-    - sutunlar: 0000000000
-    - sutunlar: 0000000000
-    - sutunlar: 0000000000
-    - sutunlar: 0000000000
+    - sutunlar: 0200000002000000020000000200000002000000
+    - sutunlar: ffffffffffffffffffffffffffffffffffffffff
+    - sutunlar: ffffffffffffffffffffffffffffffffffffffff
+    - sutunlar: ffffffffffffffffffffffffffffffffffffffff
+    - sutunlar: ffffffffffffffffffffffffffffffffffffffff
   - katmanAdi: "Y\xFCkseklik Katman\u0131 2"
     satirlar:
-    - sutunlar: 0101010101
-    - sutunlar: 0000000000
-    - sutunlar: 0000000000
-    - sutunlar: 0000000000
-    - sutunlar: 0000000000
+    - sutunlar: 0300000003000000030000000300000003000000
+    - sutunlar: ffffffffffffffffffffffffffffffffffffffff
+    - sutunlar: ffffffffffffffffffffffffffffffffffffffff
+    - sutunlar: ffffffffffffffffffffffffffffffffffffffff
+    - sutunlar: ffffffffffffffffffffffffffffffffffffffff

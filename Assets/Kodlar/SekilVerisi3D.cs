@@ -1,32 +1,30 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-// X Ekseni (5 Sütun)
+// struct yerine class yaptık!
 [System.Serializable]
-public struct Satir
+public class Satir 
 {
-    public bool[] sutunlar;
+    // -1 = Boş | 0 = Plank | 1 = Oak | 2 = Cobblestone | 3 = Brick
+    public int[] sutunlar; 
 }
 
-// Z Ekseni (5 Satır) ve Y Ekseni İsmilendirmesi
+// struct yerine class yaptık!
 [System.Serializable]
-public struct Katman
+public class Katman 
 {
-    public string katmanAdi; // Inspector'da hangi yükseklikte olduğumuzu görmek için
+    public string katmanAdi; 
     public Satir[] satirlar;
 }
 
-// Unity menüsüne veri oluşturma seçeneği ekliyoruz
 [CreateAssetMenu(fileName = "Yeni3DSekil", menuName = "BuildBattle/3D Sekil Modeli")]
 public class SekilVerisi3D : ScriptableObject
 {
     public string sekilAdi = "Yeni 3D Model";
     
     [Header("Yükseklik Katmanları (Aşağıdan Yukarıya)")]
-    // Yüksekliğin sınırı yok, liste olarak tutuyoruz
     public List<Katman> katmanlar = new List<Katman>();
 
-    // SİHİRLİ KISIM: Inspector'da sağ tıklayıp otomatik 5x5 katman eklememizi sağlar
     [ContextMenu("Yeni Yükseklik Katmanı Ekle (5x5)")]
     public void YeniKatmanEkle()
     {
@@ -34,22 +32,25 @@ public class SekilVerisi3D : ScriptableObject
         yeniKatman.katmanAdi = "Yükseklik Katmanı " + katmanlar.Count;
         yeniKatman.satirlar = new Satir[5];
         
-        for (int i = 0; i < 5; i++)
+        for (int z = 0; z < 5; z++)
         {
-            yeniKatman.satirlar[i].sutunlar = new bool[5]; // 5 kutucuklu sütun
+            yeniKatman.satirlar[z] = new Satir(); // Class olduğu için bunu eklememiz gerekti
+            yeniKatman.satirlar[z].sutunlar = new int[5]; 
+            
+            for (int x = 0; x < 5; x++)
+            {
+                yeniKatman.satirlar[z].sutunlar[x] = -1;
+            }
         }
         
         katmanlar.Add(yeniKatman);
     }
 
-    // Oyun içinde (X, Y, Z) koordinatına göre orada blok olup olmadığını soran fonksiyon
-    public bool BlokVarMi(int x, int y, int z)
+    public int BlokTipiniGetir(int x, int y, int z)
     {
-        // Önce yüksekliği (Y) kontrol et
-        if (y < 0 || y >= katmanlar.Count) return false;
-        
-        // Sonra 5x5 taban sınırlarını (X ve Z) kontrol et
-        if (z < 0 || z >= 5 || x < 0 || x >= 5) return false;
+        if (y < 0 || y >= katmanlar.Count) return -1;
+        if (katmanlar[y].satirlar == null || katmanlar[y].satirlar.Length <= z) return -1;
+        if (katmanlar[y].satirlar[z].sutunlar == null || katmanlar[y].satirlar[z].sutunlar.Length <= x) return -1;
         
         return katmanlar[y].satirlar[z].sutunlar[x];
     }

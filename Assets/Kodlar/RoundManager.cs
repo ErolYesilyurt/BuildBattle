@@ -1,7 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
 using TMPro;
-using UnityEngine.UI;
 
 public class RoundManager : MonoBehaviour
 {
@@ -26,6 +25,10 @@ public class RoundManager : MonoBehaviour
     public TextMeshProUGUI p1ScoreText;
     public TextMeshProUGUI p2ScoreText;
 
+    [Header("Blok Envanter Ayarları")]
+    public int p1SelectedBlockIndex; 
+    public int p2SelectedBlockIndex; 
+
     [Header("Buton Grupları (Add/Delete)")]
     public GameObject p1ButtonContainer;
     public GameObject p2ButtonContainer;
@@ -34,6 +37,12 @@ public class RoundManager : MonoBehaviour
     public float observeTime = 15f;
     public float buildTime = 60f;
     private float _timer;
+
+    [Header("Speed Builders Zaman Takibi")]
+    private bool _p1FinishedRound;
+    private bool _p2FinishedRound;
+    private float _p1FinishTimeLeft;
+    private float _p2FinishTimeLeft;
 
     [Header("Kontrolcüler")]
     public GameObject player1Controller;
@@ -46,17 +55,18 @@ public class RoundManager : MonoBehaviour
     public int p2Wins;
     public int winTarget = 3;
 
+    [Header("Blok Ayarları")]
+    public GameObject[] blockPrefabs; 
+    
     [Header("Örnek Şekil Gösterim Ayarları")]
-    public GameObject previewCubePrefab;
     public Transform player1Base;
     public Transform player2Base;
-
-    private List<GameObject> _spawnedPreviewCubes = new List<GameObject>();
+    private readonly List<GameObject> _spawnedPreviewCubes = new List<GameObject>();
 
     [Header("3D Şekil Kütüphanesi")]
     public SekilVerisi3D[] seviyeSekilleri;
 
-    [HideInInspector] public List<Vector3> targetShape = new List<Vector3>();
+    public Dictionary<Vector3, int> targetShape = new Dictionary<Vector3, int>();
 
     void Start()
     {
@@ -64,16 +74,18 @@ public class RoundManager : MonoBehaviour
         ReturnToMainMenu();
     }
 
-    public void QuitGame()
-    {
-        Application.Quit();
+    public void QuitGame() 
+    { 
+        Application.Quit(); 
     }
 
     public void ReturnToMainMenu()
     {
         currentState = GameState.MainMenu;
-        p1Wins = 0;
+        p1Wins = 0; 
         p2Wins = 0;
+        p1SelectedBlockIndex = 0; 
+        p2SelectedBlockIndex = 0;
 
         HidePreviewShape();
         ClearPlayerGrid(player1Grid);
@@ -93,10 +105,9 @@ public class RoundManager : MonoBehaviour
         if (gamePanel != null) gamePanel.SetActive(false);
     }
 
-    public void SetRandomMode(bool isOn)
-    {
-        isRandomModeOn = isOn;
-    }
+    public void SetP1SelectedBlock(int index) { p1SelectedBlockIndex = index; }
+    public void SetP2SelectedBlock(int index) { p2SelectedBlockIndex = index; }
+    public void SetRandomMode(bool isOn) { isRandomModeOn = isOn; }
 
     public void SelectSoloMode()
     {
@@ -141,7 +152,7 @@ public class RoundManager : MonoBehaviour
         if (duoScoreText != null) 
         {
             duoScoreText.gameObject.SetActive(true);
-            duoScoreText.text = $"{p1Wins} - {p2Wins}";
+            duoScoreText.text = $"<color=#EAB308>{p1Wins} - {p2Wins}</color>";
         }
         if (p1TimerText != null) p1TimerText.gameObject.SetActive(true);
         if (p2TimerText != null) p2TimerText.gameObject.SetActive(true);
@@ -159,7 +170,15 @@ public class RoundManager : MonoBehaviour
         if (p1ScoreText != null) p1ScoreText.text = "";
         if (p2ScoreText != null) p2ScoreText.text = "";
 
-        if (isRandomModeOn) targetShape = GenerateProceduralShape();
+        _p1FinishedRound = false;
+        _p2FinishedRound = false;
+        _p1FinishTimeLeft = 0f;
+        _p2FinishTimeLeft = 0f;
+
+        if (isRandomModeOn) 
+        {
+            targetShape = GenerateProceduralShape();
+        }
         else
         {
             if (seviyeSekilleri != null && seviyeSekilleri.Length > 0)
@@ -174,23 +193,32 @@ public class RoundManager : MonoBehaviour
         currentState = GameState.Observe;
         _timer = observeTime;
         
-        UpdateUI("ŞEKLİ EZBERLE!");
+        UpdateUI("<color=#38BDF8>ŞEKLİ İNCELE!</color>");
     }
 
-    List<Vector3> Yukle3DSekilKoordinatlari(SekilVerisi3D veri)
+    Dictionary<Vector3, int> Yukle3DSekilKoordinatlari(SekilVerisi3D veri)
     {
-        List<Vector3> koordinatlar = new List<Vector3>();
+        Dictionary<Vector3, int> koordinatlar = new Dictionary<Vector3, int>();
         for (int y = 0; y < veri.katmanlar.Count; y++)
+        {
             for (int z = 0; z < 5; z++)
+            {
                 for (int x = 0; x < 5; x++)
-                    if (veri.BlokVarMi(x, y, z))
-                        koordinatlar.Add(new Vector3(x, y, z));
+                {
+                    int blokTipi = veri.BlokTipiniGetir(x, y, z);
+                    if (blokTipi != -1) 
+                    {
+                        koordinatlar.Add(new Vector3(x, y, z), blokTipi);
+                    }
+                }
+            }
+        }
         return koordinatlar;
     }
 
-    List<Vector3> GenerateProceduralShape()
+    Dictionary<Vector3, int> GenerateProceduralShape()
     {
-        List<Vector3> randomShape = new List<Vector3>();
+        Dictionary<Vector3, int> randomShape = new Dictionary<Vector3, int>();
         int cubeCount = Random.Range(4, 9);
         for (int i = 0; i < cubeCount; i++)
         {
@@ -201,8 +229,9 @@ public class RoundManager : MonoBehaviour
                 randomPos = new Vector3(Random.Range(0, 5), Random.Range(0, 4), Random.Range(0, 5));
                 antiCrash++;
                 if (antiCrash > 50) break;
-            } while (randomShape.Contains(randomPos));
-            randomShape.Add(randomPos);
+            } while (randomShape.ContainsKey(randomPos));
+            
+            randomShape.Add(randomPos, Random.Range(0, 4));
         }
         return randomShape;
     }
@@ -213,45 +242,71 @@ public class RoundManager : MonoBehaviour
         {
             _timer -= Time.deltaTime;
             
-            // Süreyi sadece rakam olarak Text objelerine yansıtıyoruz
-            string timeString = Mathf.CeilToInt(_timer).ToString();
-            if (p1TimerText != null) p1TimerText.text = timeString;
-            if (p2TimerText != null && !isSoloMode) p2TimerText.text = timeString;
-
-            if (currentState == GameState.Observe && _timer <= 0)
+            if (currentState == GameState.Observe)
             {
-                HidePreviewShape();
-                currentState = GameState.Build;
-                _timer = buildTime;
-                UpdateUI("İNŞA ET!");
+                string timeString = Mathf.CeilToInt(_timer).ToString();
+                if (p1TimerText != null) p1TimerText.text = timeString;
+                if (p2TimerText != null && !isSoloMode) p2TimerText.text = timeString;
+
+                if (_timer <= 0)
+                {
+                    HidePreviewShape();
+                    currentState = GameState.Build;
+                    _timer = buildTime;
+                    UpdateUI("<color=#22C55E>İNŞA ET!</color>");
+                }
             }
             else if (currentState == GameState.Build)
             {
-                CheckEarlyWin();
-                if (_timer <= 0) EndRound();
+                // Speed Builders: Birisi mükemmel yaptığında anında yakala
+                if (!_p1FinishedRound && IsShapePerfect(player1Grid.placedBlocks, player1Base))
+                {
+                    _p1FinishedRound = true;
+                    _p1FinishTimeLeft = _timer; 
+                }
+
+                if (!isSoloMode && !_p2FinishedRound && IsShapePerfect(player2Grid.placedBlocks, player2Base))
+                {
+                    _p2FinishedRound = true;
+                    _p2FinishTimeLeft = _timer; 
+                }
+
+                string currentGlobalTime = Mathf.CeilToInt(_timer).ToString();
+                if (p1TimerText != null) p1TimerText.text = currentGlobalTime;
+                if (!isSoloMode && p2TimerText != null) p2TimerText.text = currentGlobalTime;
+
+                // TAMAM yazısını bekletmeden, biri bitirdiği an veya süre bittiğinde turu bitir
+                if (_p1FinishedRound || _p2FinishedRound || _timer <= 0)
+                {
+                    EndRound();
+                }
             }
         }
     }
 
-    void UpdateUI(string message)
-    {
-        if (infoText != null) infoText.text = message;
+    void UpdateUI(string message) 
+    { 
+        if (infoText != null) infoText.text = message; 
     }
 
     void SpawnPreviewShape(Transform baseTransform)
     {
-        if (baseTransform == null || previewCubePrefab == null) return;
+        if (baseTransform == null || blockPrefabs.Length == 0) return;
         float baseX = baseTransform.position.x;
         float baseY = baseTransform.position.y;
         float baseZ = baseTransform.position.z;
 
-        foreach (Vector3 localPos in targetShape)
+        foreach (KeyValuePair<Vector3, int> kvp in targetShape)
         {
+            Vector3 localPos = kvp.Key;
+            int blockType = kvp.Value; 
+
             float spawnX = baseX + (localPos.x - 2f);
             float spawnY = baseY + localPos.y + 1f;
             float spawnZ = baseZ + (localPos.z - 2f);
             Vector3 finalSpawnPos = new Vector3(spawnX, spawnY, spawnZ);
-            GameObject cube = Instantiate(previewCubePrefab, finalSpawnPos, Quaternion.identity);
+            
+            GameObject cube = Instantiate(blockPrefabs[blockType], finalSpawnPos, Quaternion.identity);
             cube.tag = "Cube";
             _spawnedPreviewCubes.Add(cube);
         }
@@ -268,25 +323,10 @@ public class RoundManager : MonoBehaviour
         if (grid == null) return;
         GameObject[] cubes = GameObject.FindGameObjectsWithTag("Cube");
         foreach (GameObject cube in cubes) Destroy(cube);
-        grid.placedCubes.Clear();
+        grid.placedBlocks.Clear();
     }
 
-    void CheckEarlyWin()
-    {
-        bool p1Finished = IsShapePerfect(player1Grid.placedCubes, player1Base);
-        
-        if (isSoloMode)
-        {
-            if (p1Finished) EndRound(true);
-            return;
-        }
-
-        bool p2Finished = IsShapePerfect(player2Grid.placedCubes, player2Base);
-
-        if (p1Finished || p2Finished) EndRound(true);
-    }
-
-    bool IsShapePerfect(List<Vector3> playerCubes, Transform playerBase)
+    bool IsShapePerfect(Dictionary<Vector3, int> playerCubes, Transform playerBase)
     {
         if (playerCubes.Count != targetShape.Count) return false;
 
@@ -294,70 +334,102 @@ public class RoundManager : MonoBehaviour
         float baseY = playerBase.position.y;
         float baseZ = playerBase.position.z;
 
-        foreach (Vector3 pos in playerCubes)
+        foreach (KeyValuePair<Vector3, int> kvp in playerCubes)
         {
+            Vector3 pos = kvp.Key;
+            int playerBlockType = kvp.Value;
+
             int gridX = Mathf.RoundToInt(pos.x - baseX + 2f);
             int gridY = Mathf.RoundToInt(pos.y - baseY - 1f);
             int gridZ = Mathf.RoundToInt(pos.z - baseZ + 2f);
             Vector3 normalizedPos = new Vector3(gridX, gridY, gridZ);
 
-            if (!targetShape.Contains(normalizedPos)) return false;
+            if (!targetShape.TryGetValue(normalizedPos, out int targetBlockType) || targetBlockType != playerBlockType) 
+                return false;
         }
         return true;
     }
 
-    void EndRound(bool isEarlyWin = false)
+    // Yüzdeye göre modern renk kodunu veren sistem
+    string GetColorHex(float percentage)
+    {
+        if (percentage >= 100f) return "#22C55E"; // Yeşil (Mükemmel)
+        if (percentage >= 70f)  return "#EAB308"; // Sarı (İyi)
+        if (percentage >= 40f)  return "#F97316"; // Turuncu (Orta)
+        return "#EF4444"; // Kırmızı (Kötü)
+    }
+
+    void EndRound()
     {
         currentState = GameState.RoundEnd;
 
-        float p1Percentage = CalculateSuccessPercentage(player1Grid.placedCubes, player1Base);
+        float p1Percentage = _p1FinishedRound ? 100f : CalculateSuccessPercentage(player1Grid.placedBlocks, player1Base);
+        float p2Percentage = isSoloMode ? 0f : (_p2FinishedRound ? 100f : CalculateSuccessPercentage(player2Grid.placedBlocks, player2Base));
         
+        float p1Duration = _p1FinishedRound ? (buildTime - _p1FinishTimeLeft) : buildTime;
+        float p2Duration = _p2FinishedRound ? (buildTime - _p2FinishTimeLeft) : buildTime;
+
+        string p1Color = GetColorHex(p1Percentage);
+        string p2Color = GetColorHex(p2Percentage);
+
+        // Bitiremeyen oyuncunun altına "Süre Bitti" YAZMA. Sadece süresi yeteni göster.
+        string p1TimeDisplay = _p1FinishedRound ? $"\n<size=65%><color=#EAB308>⏱ {p1Duration:F1}sn</color></size>" : "";
+        string p2TimeDisplay = _p2FinishedRound ? $"\n<size=65%><color=#EAB308>⏱ {p2Duration:F1}sn</color></size>" : "";
+
         if (isSoloMode)
         {
-            if (isEarlyWin) p1Percentage = 100f;
-            
-            UpdateUI($"TUR BİTTİ!\nDoğruluk Oranı: %{p1Percentage:F1}");
-            if (p1ScoreText != null) p1ScoreText.text = $"%{p1Percentage:F1}";
+            UpdateUI($"<color=#FFFFFF>TUR BİTTİ!</color>\n<size=70%>Doğruluk: <color={p1Color}>%{p1Percentage:F1}</color></size>");
+            if (p1ScoreText != null) p1ScoreText.text = $"<b><color={p1Color}>%{p1Percentage:F1}</color></b>{p1TimeDisplay}";
 
-            Invoke(nameof(StartNewRound), 3f);
+            Invoke(nameof(StartNewRound), 3.5f);
         }
         else
         {
-            float p2Percentage = CalculateSuccessPercentage(player2Grid.placedCubes, player2Base);
-            
-            if (isEarlyWin)
+            bool p1Kazandi = false;
+            bool p2Kazandi = false;
+
+            if (p1Percentage > p2Percentage)
             {
-                if (IsShapePerfect(player1Grid.placedCubes, player1Base)) p1Percentage = 100f;
-                if (IsShapePerfect(player2Grid.placedCubes, player2Base)) p2Percentage = 100f;
+                p1Kazandi = true;
+            }
+            else if (p2Percentage > p1Percentage)
+            {
+                p2Kazandi = true;
+            }
+            else 
+            {
+                if (_p1FinishTimeLeft > _p2FinishTimeLeft) p1Kazandi = true;
+                else if (_p2FinishTimeLeft > _p1FinishTimeLeft) p2Kazandi = true;
             }
 
-            if (p1Percentage > p2Percentage) p1Wins++;
-            else if (p2Percentage > p1Percentage) p2Wins++;
+            if (p1Kazandi) p1Wins++;
+            else if (p2Kazandi) p2Wins++;
 
-            if (p1ScoreText != null) p1ScoreText.text = $"%{p1Percentage:F1}";
-            if (p2ScoreText != null) p2ScoreText.text = $"%{p2Percentage:F1}";
-
-            if (duoScoreText != null) duoScoreText.text = $"{p1Wins} - {p2Wins}";
+            if (p1ScoreText != null) p1ScoreText.text = $"<b><color={p1Color}>%{p1Percentage:F1}</color></b>{p1TimeDisplay}";
+            if (p2ScoreText != null) p2ScoreText.text = $"<b><color={p2Color}>%{p2Percentage:F1}</color></b>{p2TimeDisplay}";
+            
+            if (duoScoreText != null) duoScoreText.text = $"<color=#EAB308>{p1Wins} - {p2Wins}</color>";
 
             if (p1Wins >= winTarget) 
             {
-                UpdateUI("OYUN BİTTİ!\nOYUNCU 1 KAZANDI!");
-                if (duoScoreText != null) duoScoreText.color = Color.green;
+                UpdateUI("<color=#22C55E>OYUN BİTTİ!\n1. OYUNCU KAZANDI!</color>");
             }
             else if (p2Wins >= winTarget) 
             {
-                UpdateUI("OYUN BİTTİ!\nOYUNCU 2 KAZANDI!");
-                if (duoScoreText != null) duoScoreText.color = Color.green;
+                UpdateUI("<color=#22C55E>OYUN BİTTİ!\n2. OYUNCU KAZANDI!</color>");
             }
             else
             {
-                UpdateUI("TUR BİTTİ!");
-                Invoke(nameof(StartNewRound), 3f);
+                string roundWinnerTxt = p1Kazandi ? "<color=#38BDF8>1. OYUNCU TURU ALDI!</color>" : 
+                                       (p2Kazandi ? "<color=#F87171>2. OYUNCU TURU ALDI!</color>" : "<color=#A1A1AA>BERABERE!</color>");
+                UpdateUI(roundWinnerTxt);
+                
+                Invoke(nameof(StartNewRound), 3.5f);
             }
         }
     }
 
-    float CalculateSuccessPercentage(List<Vector3> playerCubes, Transform playerBase)
+    float CalculateSuccessPercentage(Dictionary<Vector3, int> playerCubes, Transform playerBase)
     {
         if (targetShape.Count == 0) return 0f;
 
@@ -369,15 +441,21 @@ public class RoundManager : MonoBehaviour
         float baseY = playerBase.position.y;
         float baseZ = playerBase.position.z;
 
-        foreach (Vector3 pos in playerCubes)
+        foreach (KeyValuePair<Vector3, int> kvp in playerCubes)
         {
+            Vector3 pos = kvp.Key;
+            int playerBlockType = kvp.Value; 
+
             int gridX = Mathf.RoundToInt(pos.x - baseX + 2f);
             int gridY = Mathf.RoundToInt(pos.y - baseY - 1f);
             int gridZ = Mathf.RoundToInt(pos.z - baseZ + 2f);
-            
             Vector3 normalizedPos = new Vector3(gridX, gridY, gridZ);
 
-            if (targetShape.Contains(normalizedPos)) correctCount++;
+            if (targetShape.TryGetValue(normalizedPos, out int targetBlockType))
+            {
+                if (targetBlockType == playerBlockType) correctCount++;
+                else wrongCount++;
+            }
             else wrongCount++;
         }
 

@@ -16,8 +16,8 @@ MonoBehaviour:
   katmanlar:
   - katmanAdi: "Y\xFCkseklik Katman\u0131 0"
     satirlar:
-    - sutunlar: 0101010101
-    - sutunlar: 0100000001
-    - sutunlar: 0100000001
-    - sutunlar: 0000000000
-    - sutunlar: 0000000000
+    - sutunlar: 0300000003000000030000000300000003000000
+    - sutunlar: 03000000ffffffffffffffffffffffff03000000
+    - sutunlar: 03000000ffffffffffffffffffffffff03000000
+    - sutunlar: ffffffffffffffffffffffffffffffffffffffff
+    - sutunlar: ffffffffffffffffffffffffffffffffffffffff

@@ -16,36 +16,36 @@ MonoBehaviour:
   katmanlar:
   - katmanAdi: "Y\xFCkseklik Katman\u0131 0"
     satirlar:
-    - sutunlar: 0000000000
-    - sutunlar: 0000000000
-    - sutunlar: 0000010000
-    - sutunlar: 0000000000
-    - sutunlar: 0000000000
+    - sutunlar: ffffffffffffffffffffffffffffffffffffffff
+    - sutunlar: ffffffffffffffffffffffffffffffffffffffff
+    - sutunlar: ffffffffffffffff02000000ffffffffffffffff
+    - sutunlar: ffffffffffffffffffffffffffffffffffffffff
+    - sutunlar: ffffffffffffffffffffffffffffffffffffffff
   - katmanAdi: "Y\xFCkseklik Katman\u0131 1"
     satirlar:
-    - sutunlar: 0000000000
-    - sutunlar: 0000000000
-    - sutunlar: 0000010000
-    - sutunlar: 0000000000
-    - sutunlar: 0000000000
+    - sutunlar: ffffffffffffffffffffffffffffffffffffffff
+    - sutunlar: ffffffffffffffffffffffffffffffffffffffff
+    - sutunlar: ffffffffffffffff03000000ffffffffffffffff
+    - sutunlar: ffffffffffffffffffffffffffffffffffffffff
+    - sutunlar: ffffffffffffffffffffffffffffffffffffffff
   - katmanAdi: "Y\xFCkseklik Katman\u0131 2"
     satirlar:
-    - sutunlar: 0000000000
-    - sutunlar: 0000000000
-    - sutunlar: 0000010000
-    - sutunlar: 0000000000
-    - sutunlar: 0000000000
+    - sutunlar: ffffffffffffffffffffffffffffffffffffffff
+    - sutunlar: ffffffffffffffffffffffffffffffffffffffff
+    - sutunlar: ffffffffffffffff03000000ffffffffffffffff
+    - sutunlar: ffffffffffffffffffffffffffffffffffffffff
+    - sutunlar: ffffffffffffffffffffffffffffffffffffffff
   - katmanAdi: "Y\xFCkseklik Katman\u0131 3"
     satirlar:
-    - sutunlar: 0000000000
-    - sutunlar: 0000000000
-    - sutunlar: 0000010000
-    - sutunlar: 0000000000
-    - sutunlar: 0000000000
+    - sutunlar: ffffffffffffffffffffffffffffffffffffffff
+    - sutunlar: ffffffffffffffffffffffffffffffffffffffff
+    - sutunlar: ffffffffffffffff03000000ffffffffffffffff
+    - sutunlar: ffffffffffffffffffffffffffffffffffffffff
+    - sutunlar: ffffffffffffffffffffffffffffffffffffffff
   - katmanAdi: "Y\xFCkseklik Katman\u0131 4"
     satirlar:
-    - sutunlar: 0000000000
-    - sutunlar: 0000000000
-    - sutunlar: 0000010000
-    - sutunlar: 0000000000
-    - sutunlar: 0000000000
+    - sutunlar: ffffffffffffffffffffffffffffffffffffffff
+    - sutunlar: ffffffffffffffffffffffffffffffffffffffff
+    - sutunlar: ffffffffffffffff03000000ffffffffffffffff
+    - sutunlar: ffffffffffffffffffffffffffffffffffffffff
+    - sutunlar: ffffffffffffffffffffffffffffffffffffffff
